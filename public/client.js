@@ -28,7 +28,6 @@ function appendMessage(name, message) {
     const messageElement = document.createElement("div");
     messageElement.classList.add("message");
 
-    // Add the appropriate class based on who sent the message
     if (name === username) {
         messageElement.classList.add("sender");
     } else {
@@ -42,22 +41,22 @@ function appendMessage(name, message) {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-// Check if username exists in localStorage
+// Initialize the app
 window.onload = () => {
     const storedName = localStorage.getItem("chatUsername");
     if (storedName) {
         username = storedName;
         showChatInterface();
-        loadChatHistory(); // Load chat history
+        loadChatHistory();
     } else {
-        nameModal.style.display = 'flex';
+        nameModal.style.display = "flex";
     }
 };
 
 // Show chat interface and hide modal
 function showChatInterface() {
-    nameModal.style.display = 'none';
-    chatContainer.style.display = 'flex';
+    nameModal.style.display = "none";
+    chatContainer.style.display = "flex";
     chatControls.style.display = "flex";
 }
 
@@ -65,25 +64,28 @@ function showChatInterface() {
 joinBtn.addEventListener("click", () => {
     username = nameInput.value.trim();
     if (username) {
-        localStorage.setItem("chatUsername", username); // Save to localStorage
+        localStorage.setItem("chatUsername", username);
         socket.emit("join", username); // Emit 'join' event to the server
         showChatInterface();
     }
 });
 
-// Send message when the send button is clicked
+// Send message
 sendBtn.addEventListener("click", () => {
     const message = messageInput.value.trim();
     if (message) {
-        socket.emit("chatMessage", { name: username, message }); // Send message to server
+        const data = { name: username, message };
         saveMessage(username, message); // Save message locally
         appendMessage(username, message); // Append to UI
+        socket.emit("chatMessage", data); // Send message to server
         messageInput.value = ""; // Clear input
     }
 });
 
-// Listen for incoming messages from the server (including system messages)
+// Listen for incoming messages (ensure no duplication)
 socket.on("chatMessage", (data) => {
-    saveMessage(data.name, data.message); // Save received message locally
-    appendMessage(data.name, data.message); // Append to UI
+    if (data.name !== username) { // Only append if the sender is not the current user
+        saveMessage(data.name, data.message);
+        appendMessage(data.name, data.message);
+    }
 });
