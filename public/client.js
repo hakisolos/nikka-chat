@@ -4,7 +4,6 @@ const nameInput = document.getElementById("nameInput");
 const joinBtn = document.getElementById("joinBtn");
 const messageInput = document.getElementById("messageInput");
 const sendBtn = document.getElementById("sendBtn");
-const chatControls = document.getElementById("chatControls");
 const nameModal = document.getElementById("nameModal");
 const chatContainer = document.querySelector(".chat-container");
 
@@ -14,11 +13,7 @@ let username = "";
 function loadChatHistory() {
     const chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
     chatHistory.forEach(data => {
-        if (data.message) {
-            appendMessage(data.name, data.message);
-        } else if (data.image) {
-            appendImage(data.name, data.image);
-        }
+        appendMessage(data.name, data.message);
     });
 }
 
@@ -59,4 +54,35 @@ window.onload = () => {
     }
 };
 
-//
+// Show the chat interface
+function showChatInterface() {
+    nameModal.style.display = "none";
+    chatContainer.style.display = "flex";  // Show the chat container
+}
+
+// Handle the 'Join Chat' button click
+joinBtn.addEventListener("click", () => {
+    const name = nameInput.value.trim();
+    if (name) {
+        username = name;
+        localStorage.setItem("chatUsername", username);
+        showChatInterface();
+        loadChatHistory();
+    }
+});
+
+// Send message event
+sendBtn.addEventListener("click", () => {
+    const message = messageInput.value.trim();
+    if (message) {
+        socket.emit("chat message", { name: username, message });
+        appendMessage(username, message);
+        saveMessage(username, message);
+        messageInput.value = "";  // Clear input field
+    }
+});
+
+// Listen for incoming messages
+socket.on("chat message", data => {
+    appendMessage(data.name, data.message);
+});
