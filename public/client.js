@@ -50,6 +50,8 @@ socket.on("chatMessage", (data) => {
     messageElement.innerHTML = `<strong>${data.name}: </strong>${data.message}`;
     messagesContainer.appendChild(messageElement);
 
-    // Scroll to the latest message
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    // Ensure scroll happens after DOM update
+    setTimeout(() => {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }, 0);
 });
