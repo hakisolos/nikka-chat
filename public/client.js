@@ -10,19 +10,31 @@ const chatContainer = document.querySelector(".chat-container");
 
 let username = "";
 
-// Show the modal to enter the name
+// Check if username exists in local storage
 window.onload = () => {
-    nameModal.style.display = 'flex';
+    const storedName = localStorage.getItem("chatUsername");
+    if (storedName) {
+        username = storedName;
+        showChatInterface();
+    } else {
+        nameModal.style.display = 'flex';
+    }
 };
 
-// Hide the modal and show the chat interface once the user joins
+// Show chat interface and hide modal
+function showChatInterface() {
+    nameModal.style.display = 'none';
+    chatContainer.style.display = 'flex';
+    chatControls.style.display = "flex";
+}
+
+// Save username to local storage and show chat interface
 joinBtn.addEventListener("click", () => {
     username = nameInput.value.trim();
     if (username) {
+        localStorage.setItem("chatUsername", username); // Save to local storage
         socket.emit("join", username); // Emit 'join' event to the server
-        nameModal.style.display = 'none';
-        chatContainer.style.display = 'flex';
-        chatControls.style.display = "flex";
+        showChatInterface();
     }
 });
 
@@ -50,8 +62,16 @@ socket.on("chatMessage", (data) => {
     messageElement.innerHTML = `<strong>${data.name}: </strong>${data.message}`;
     messagesContainer.appendChild(messageElement);
 
-    // Ensure scroll happens after DOM update
-    setTimeout(() => {
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }, 0);
+    // Scroll to the latest message
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
 });
+
+// Add a logout button functionality
+const logoutBtn = document.createElement("button");
+logoutBtn.textContent = "Logout";
+logoutBtn.style.margin = "10px";
+logoutBtn.onclick = () => {
+    localStorage.removeItem("chatUsername");
+    location.reload(); // Reload the page
+};
+chatContainer.appendChild(logoutBtn);
