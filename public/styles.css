@@ -153,6 +153,7 @@ button:focus {
         font-size: 14px;
     }
 }
+
 #nameModal {
     display: none; /* Initially hidden */
 }
@@ -160,6 +161,7 @@ button:focus {
 .chat-container {
     display: none; /* Initially hidden */
 }
+
 #uploadBtn {
     background-color: #007bff;
     color: white;
