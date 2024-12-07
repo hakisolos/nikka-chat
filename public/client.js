@@ -89,3 +89,83 @@ socket.on("chatMessage", (data) => {
         appendMessage(data.name, data.message);
     }
 });
+const imageInput = document.getElementById("imageInput");
+const uploadBtn = document.getElementById("uploadBtn");
+
+// Handle image uploads
+uploadBtn.addEventListener("click", () => {
+    imageInput.click(); // Open the file dialog
+});
+
+imageInput.addEventListener("change", (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const imageUrl = reader.result;
+            sendImage(imageUrl); // Send the image to the chat
+        };
+        reader.readAsDataURL(file);
+    }
+    imageInput.value = ""; // Reset input after selection
+});
+
+// Function to send an image
+function sendImage(imageUrl) {
+    const data = { name: username, image: imageUrl };
+    saveImage(username, imageUrl); // Save image locally
+    appendImage(username, imageUrl); // Append image to UI
+    socket.emit("chatImage", data); // Send image to server
+}
+
+// Append an image to the chat UI
+function appendImage(name, imageUrl) {
+    const messageElement = document.createElement("div");
+    messageElement.classList.add("message");
+
+    if (name === username) {
+        messageElement.classList.add("sender");
+    } else {
+        messageElement.classList.add("receiver");
+    }
+
+    const imageElement = document.createElement("img");
+    imageElement.src = imageUrl;
+    imageElement.alt = "Uploaded image";
+    imageElement.style.maxWidth = "200px";
+    imageElement.style.borderRadius = "10px";
+
+    messageElement.innerHTML = `<strong>${name}: </strong>`;
+    messageElement.appendChild(imageElement);
+    messagesContainer.appendChild(messageElement);
+
+    // Scroll to the latest message
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// Save images locally
+function saveImage(name, imageUrl) {
+    const chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
+    chatHistory.push({ name, image: imageUrl });
+    localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
+}
+
+// Load chat history and handle images
+function loadChatHistory() {
+    const chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
+    chatHistory.forEach(data => {
+        if (data.message) {
+            appendMessage(data.name, data.message);
+        } else if (data.image) {
+            appendImage(data.name, data.image);
+        }
+    });
+}
+
+// Listen for incoming images
+socket.on("chatImage", (data) => {
+    if (data.name !== username) {
+        saveImage(data.name, data.image);
+        appendImage(data.name, data.image);
+    }
+});
