@@ -55,30 +55,8 @@ window.onload = () => {
         showChatInterface();
         loadChatHistory();
     } else {
-        nameModal.style.display = "flex";
+        nameModal.style.display = "flex";  // Ensure modal shows up
     }
 };
 
-// Show chat interface and hide modal
-function showChatInterface() {
-    nameModal.style.display = "none";
-    chatContainer.style.display = "flex";
-    chatControls.style.display = "flex";
-}
-
-// Save username to localStorage and show chat interface
-joinBtn.addEventListener("click", () => {
-    username = nameInput.value.trim();
-    if (username) {
-        localStorage.setItem("chatUsername", username);
-        socket.emit("join", username); // Emit 'join' event to the server
-        showChatInterface();
-    }
-});
-
-// Send message
-sendBtn.addEventListener("click", () => {
-    const message = messageInput.value.trim();
-    if (message) {
-        const data = { name: username, message };
-        saveMessage(username
+//
