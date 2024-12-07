@@ -1,4 +1,4 @@
-const express = require('express');
+/*const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const { Server } = require('http');
@@ -46,4 +46,50 @@ io.on('connection', (socket) => {
 module.exports = (req, res) => {
     server(req, res);
 };
+*/
 
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+
+// Store users
+let users = [];
+
+// Serve static files
+app.use(express.static('public'));
+
+// Handle Socket.IO connections
+io.on('connection', (socket) => {
+    console.log('A user connected');
+
+    // Handle user joining
+    socket.on('join', (username) => {
+        if (!username) return;
+
+        console.log(`${username} joined the chat`);
+        users.push(username);
+
+        // Notify all clients
+        io.emit('chatMessage', { name: 'System', message: `${username} joined the chat` });
+    });
+
+    // Handle chat messages
+    socket.on('chatMessage', (data) => {
+        io.emit('chatMessage', data);
+    });
+
+    // Handle disconnect
+    socket.on('disconnect', () => {
+        console.log('A user disconnected');
+    });
+});
+
+// Start the server
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`Socket.IO server running on port ${PORT}`);
+});
