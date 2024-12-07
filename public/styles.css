@@ -19,6 +19,7 @@ body {
 }
 
 .chat-container {
+    display: none;  /* Initially hidden */
     width: 100%;
     max-width: 500px;
     height: 90vh;
@@ -153,28 +154,6 @@ button:focus {
         font-size: 14px;
     }
 }
-
 #nameModal {
-    display: none; /* Initially hidden */
-}
-
-.chat-container {
-    display: none; /* Initially hidden */
-}
-
-#uploadBtn {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    font-size: 24px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-right: 10px;
-}
-
-#uploadBtn:hover {
-    background-color: #0056b3;
+    display: flex; /* Make modal visible by default */
 }
