@@ -153,3 +153,10 @@ button:focus {
         font-size: 14px;
     }
 }
+#nameModal {
+    display: none; /* Initially hidden */
+}
+
+.chat-container {
+    display: none; /* Initially hidden */
+}
