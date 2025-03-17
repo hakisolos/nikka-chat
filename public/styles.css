@@ -126,7 +126,7 @@ body {
     border: none;
 }
 
-#sendBtn {
+.btn {
     padding: 12px 20px;
     background-color: #0099cc;  /* Light blue button */
     color: white;

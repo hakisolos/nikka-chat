@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>nikka-chat</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <!-- Modal for entering name -->
     <div id="nameModal" class="modal">
@@ -21,11 +23,13 @@
         <div id="messages" class="messages"></div>
         <div id="chatControls">
             <input id="messageInput" type="text" placeholder="Type a message..." />
-            <button id="sendBtn">Send</button>
+            <button class="btn" id="sendBtn">Send</button>
+            <button class="btn" onclick="clearHist()">Clear</button> <!-- Added Clear Button -->
         </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="client.js"></script>
 </body>
+
 </html>
