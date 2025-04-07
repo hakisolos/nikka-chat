@@ -1,143 +1,191 @@
-<!DOCTYPE html>
-<html lang="en">
+const socket = io();
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nikka Chat Advanced</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="styles.css">
-</head>
+// DOM Elements
+const nameModal = document.getElementById('nameModal');
+const chatContainer = document.querySelector('.chat-container');
+const nameInput = document.getElementById('nameInput');
+const joinBtn = document.getElementById('joinBtn');
+const messageInput = document.getElementById('messageInput');
+const sendBtn = document.getElementById('sendBtn');
+const messagesDiv = document.getElementById('messages');
+const chatControls = document.getElementById("chatControls");
+const themeToggle = document.getElementById('themeToggle');
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsModal = document.getElementById('settingsModal');
+const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+const userNameElement = document.getElementById('userName');
+const userInitialElement = document.getElementById('userInitial');
+const usersList = document.getElementById('usersList');
+const fontSizeSlider = document.getElementById('fontSizeSlider');
+const fontSizeValue = document.getElementById('fontSizeValue');
+const themeOptions = document.querySelectorAll('.theme-option');
 
-<body class="light-mode">
-    <!-- Mode Toggle -->
-    <div class="theme-toggle">
-        <button id="themeToggle">
-            <i class="fas fa-moon"></i>
-            <span>Dark Mode</span>
-        </button>
-    </div>
+let username = '';
+const dummyUsers = ['Alex', 'Taylor', 'Jordan', 'Casey'];
 
-    <!-- Modal for entering name -->
-    <div id="nameModal" class="modal">
-        <div class="modal-content glass-effect">
-            <div class="modal-header">
-                <h2><i class="fas fa-comments"></i> Welcome to Nikka Chat</h2>
-                <p>Join the conversation with a unique username</p>
-            </div>
-            <div class="input-group">
-                <div class="input-icon">
-                    <i class="fas fa-user"></i>
-                </div>
-                <input id="nameInput" type="text" placeholder="Enter your name" />
-            </div>
-            <button id="joinBtn" class="btn primary-btn">
-                <i class="fas fa-sign-in-alt"></i> Join Chat
-            </button>
-        </div>
-    </div>
+// Initialize on load
+window.onload = () => {
+    const storedName = localStorage.getItem("chatUsername");
+    if (storedName) {
+        username = storedName;
+        handleJoin(true);
+        loadChatHistory();
+    } else {
+        nameModal.style.display = "flex";
+    }
+};
 
-    <!-- Chat Container -->
-    <div class="chat-container glass-effect">
-        <div class="chat-header">
-            <div class="chat-info">
-                <h2><i class="fas fa-comments"></i> Nikka Chat</h2>
-                <span id="onlineStatus"><i class="fas fa-circle"></i> Online</span>
-            </div>
-            <div class="header-actions">
-                <button id="settingsBtn" class="icon-btn"><i class="fas fa-cog"></i></button>
-                <button id="notificationBtn" class="icon-btn"><i class="fas fa-bell"></i></button>
-            </div>
-        </div>
+// Load chat history
+function loadChatHistory() {
+    const chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
+    chatHistory.forEach(data => appendMessage(data.name, data.message));
+}
 
-        <div class="chat-body">
-            <div class="sidebar">
-                <div class="user-profile">
-                    <div class="avatar">
-                        <span id="userInitial"></span>
-                    </div>
-                    <div class="user-info">
-                        <h3 id="userName">User</h3>
-                        <span class="status-indicator">Active now</span>
-                    </div>
-                </div>
-                <div class="sidebar-section">
-                    <h4>Active Users</h4>
-                    <ul id="usersList" class="users-list">
-                        <!-- Users will be added dynamically -->
-                    </ul>
-                </div>
-            </div>
+// Save message
+function saveMessage(name, message) {
+    const chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
+    chatHistory.push({ name, message });
+    localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
+}
 
-            <div class="messages-container">
-                <div id="messages" class="messages"></div>
-            </div>
-        </div>
+// Append message
+function appendMessage(name, message) {
+    const type = name === username ? 'sender' : 'receiver';
+    addMessage(message, type, name);
+    saveMessage(name, message);
+}
 
-        <div id="chatControls" class="chat-controls">
-            <button class="icon-btn feature-btn"><i class="fas fa-paperclip"></i></button>
-            <button class="icon-btn feature-btn"><i class="fas fa-image"></i></button>
-            <div class="message-input-wrapper">
-                <input id="messageInput" type="text" placeholder="Type a message..." />
-                <div class="input-actions">
-                    <button class="icon-btn emoji-btn"><i class="fas fa-smile"></i></button>
-                </div>
-            </div>
-            <button id="sendBtn" class="btn primary-btn rounded-btn">
-                <i class="fas fa-paper-plane"></i>
-            </button>
-            <button id="clearBtn" class="icon-btn danger-btn" onclick="clearHist()">
-                <i class="fas fa-trash"></i>
-            </button>
-        </div>
-    </div>
+// Join handler
+function handleJoin(auto = false) {
+    if (!auto) username = nameInput.value.trim();
+    if (username) {
+        localStorage.setItem("chatUsername", username);
+        nameModal.style.display = 'none';
+        chatContainer.style.display = 'flex';
+        chatControls.style.display = 'flex';
 
-    <!-- Settings Modal -->
-    <div id="settingsModal" class="modal hidden">
-        <div class="modal-content settings-modal glass-effect">
-            <div class="modal-header">
-                <h2><i class="fas fa-cog"></i> Settings</h2>
-                <button id="closeSettingsBtn" class="close-btn"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="settings-section">
-                <h3>Appearance</h3>
-                <div class="setting-item">
-                    <span>Theme</span>
-                    <div class="theme-selector">
-                        <button class="theme-option light-option active">Light</button>
-                        <button class="theme-option dark-option">Dark</button>
-                    </div>
-                </div>
-                <div class="setting-item">
-                    <span>Font Size</span>
-                    <div class="range-slider">
-                        <input type="range" min="12" max="20" value="16" id="fontSizeSlider">
-                        <span id="fontSizeValue">16px</span>
-                    </div>
-                </div>
-            </div>
-            <div class="settings-section">
-                <h3>Notifications</h3>
-                <div class="setting-item">
-                    <span>Sound Alerts</span>
-                    <label class="switch">
-                        <input type="checkbox" checked>
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-                <div class="setting-item">
-                    <span>Desktop Notifications</span>
-                    <label class="switch">
-                        <input type="checkbox">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-            </div>
-        </div>
-    </div>
+        userNameElement.textContent = username;
+        userInitialElement.textContent = username.charAt(0).toUpperCase();
+        socket.emit("join", username);
+        addSystemMessage(`Welcome to Nikka Chat, ${username}!`);
+    }
+}
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="client.js"></script>
-</body>
+// Send message
+function sendMessage() {
+    const message = messageInput.value.trim();
+    if (message) {
+        const data = { name: username, message };
+        appendMessage(username, message);
+        socket.emit("chatMessage", data);
+        messageInput.value = '';
+    }
+}
 
-</html>
+// Add message to UI
+function addMessage(text, type, user = '') {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${type}`;
+
+    const messageContent = document.createElement('div');
+    messageContent.className = 'message-content';
+    messageContent.textContent = text;
+
+    const messageInfo = document.createElement('div');
+    messageInfo.className = 'message-info';
+
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    messageInfo.textContent = type === 'sender' ? `You • ${timeStr}` :
+                              type === 'receiver' ? `${user} • ${timeStr}` : timeStr;
+
+    messageDiv.appendChild(messageContent);
+    messageDiv.appendChild(messageInfo);
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+// System message
+function addSystemMessage(text) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message system-message';
+    messageDiv.textContent = text;
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+// Clear chat history
+function clearHist() {
+    try {
+        localStorage.clear();
+        console.log("Chat cleared");
+        location.reload();
+    } catch (error) {
+        console.error("Error clearing chat history:", error);
+    }
+}
+
+// Theme toggle
+function toggleTheme() {
+    document.body.classList.toggle('dark-mode');
+    themeToggle.innerHTML = document.body.classList.contains('dark-mode') ?
+        '<i class="fas fa-sun"></i><span>Light Mode</span>' :
+        '<i class="fas fa-moon"></i><span>Dark Mode</span>';
+}
+
+// Dummy users
+function populateDummyUsers() {
+    usersList.innerHTML = "";
+    dummyUsers.forEach(user => {
+        const li = document.createElement('li');
+        li.textContent = user;
+        usersList.appendChild(li);
+    });
+}
+
+// Simulated response (optional)
+function simulateResponse() {
+    const user = dummyUsers[Math.floor(Math.random() * dummyUsers.length)];
+    const replies = ["Hey!", "That's cool!", "Haha nice!", "Interesting...", "Tell me more!"];
+    const reply = replies[Math.floor(Math.random() * replies.length)];
+    addMessage(reply, 'receiver', user);
+}
+
+// Event Listeners
+joinBtn.addEventListener('click', () => handleJoin());
+nameInput.addEventListener('keypress', e => e.key === 'Enter' && handleJoin());
+sendBtn.addEventListener('click', sendMessage);
+messageInput.addEventListener('keypress', e => e.key === 'Enter' && sendMessage());
+themeToggle.addEventListener('click', toggleTheme);
+settingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
+closeSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
+
+fontSizeSlider.addEventListener('input', () => {
+    const size = fontSizeSlider.value;
+    fontSizeValue.textContent = `${size}px`;
+    document.documentElement.style.setProperty('--message-font-size', `${size}px`);
+});
+
+themeOptions.forEach(option => {
+    option.addEventListener('click', () => {
+        themeOptions.forEach(opt => opt.classList.remove('active'));
+        option.classList.add('active');
+        if (option.classList.contains('dark-option')) {
+            document.body.classList.add('dark-mode');
+            themeToggle.innerHTML = '<i class="fas fa-sun"></i><span>Light Mode</span>';
+        } else {
+            document.body.classList.remove('dark-mode');
+            themeToggle.innerHTML = '<i class="fas fa-moon"></i><span>Dark Mode</span>';
+        }
+    });
+});
+
+// Listen for incoming messages from others
+socket.on("chatMessage", (data) => {
+    if (data.name !== username) {
+        appendMessage(data.name, data.message);
+    }
+});
+
+populateDummyUsers();
